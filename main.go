@@ -97,6 +97,9 @@ func (n *node) search(prefix string, rn []rune, index int) []string {
 		found := <-ans
 		return found
 	}
+	if n.children[rn[index]-97] == nil {
+		return []string{}
+	}
 	return n.children[rn[index]-97].search(prefix, rn, index+1)
 }
 
