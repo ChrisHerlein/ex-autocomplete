@@ -35,7 +35,7 @@ func main() {
 		return
 	}
 	found := tree.Search(*search)
-	fmt.Printf("%+v\n", found)
+	fmt.Printf("Suggestions: %+v\n", found)
 }
 
 type node struct {
@@ -46,15 +46,24 @@ type node struct {
 }
 
 func (n *node) Add(word string) {
+	defer func() {
+		e := recover()
+		if e != nil {
+			fmt.Println("Can not understand:", word)
+		}
+	}()
+	if word == "" {
+		return
+	}
 	rn := []rune(word)
 	if len(n.children) == 0 {
-		n.children = make([]*node, 26)
+		n.children = make([]*node, 27)
 	}
 	if n.children[rn[0]-97] == nil {
 		n.children[rn[0]-97] = &node{
 			root:     string(word[0]),
 			code:     rn[0] - 97,
-			children: make([]*node, 26),
+			children: make([]*node, 27),
 		}
 	}
 	n.children[rn[0]-97].add(word, rn, 1)
@@ -69,7 +78,7 @@ func (n *node) add(word string, rn []rune, index int) {
 		n.children[rn[index]-97] = &node{
 			root:     word[0 : index+1],
 			code:     rn[index] - 97,
-			children: make([]*node, 26),
+			children: make([]*node, 27),
 		}
 	}
 	n.children[rn[index]-97].add(word, rn, index+1)
@@ -97,8 +106,8 @@ func (n *node) getWords(upper chan []string) {
 		found = append(found, n.root)
 	}
 	var sent = 0
-	ans := make(chan []string, 26)
-	for i := 0; i < 26; i++ {
+	ans := make(chan []string, 27)
+	for i := 0; i < 27; i++ {
 		if n.children[i] != nil {
 			sent++
 			go n.children[i].getWords(ans)
@@ -115,8 +124,19 @@ func cleanChars(word string) string {
 	word = strings.ReplaceAll(word, "ñ", "{") // to put ñ at end of children
 	word = strings.ReplaceAll(word, "á", "a")
 	word = strings.ReplaceAll(word, "é", "e")
+	word = strings.ReplaceAll(word, "è", "e")
 	word = strings.ReplaceAll(word, "í", "i")
+	word = strings.ReplaceAll(word, "ì", "i")
 	word = strings.ReplaceAll(word, "ó", "o")
 	word = strings.ReplaceAll(word, "ú", "u")
+	word = strings.ReplaceAll(word, ")", "")
+	word = strings.ReplaceAll(word, "(", "")
+	word = strings.ReplaceAll(word, ":", "")
+	word = strings.ReplaceAll(word, ".", "")
+	word = strings.ReplaceAll(word, "-", "")
+	word = strings.ReplaceAll(word, "!", "")
+	word = strings.ReplaceAll(word, "¡", "")
+	word = strings.ReplaceAll(word, "?", "")
+	word = strings.ReplaceAll(word, "\"", "")
 	return word
 }
